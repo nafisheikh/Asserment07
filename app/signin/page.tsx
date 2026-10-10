@@ -1,3 +1,176 @@
 'use client';
-import Link from 'next/link';import {useState} from 'react';import {useRouter,useSearchParams} from 'next/navigation';import {authClient} from '@/lib/auth-client';import toast from 'react-hot-toast';import {ArrowRight,Chrome, Github, LockKeyhole, ShoppingBasket} from 'lucide-react';
-export default function SignInPage(){const router=useRouter();const params=useSearchParams();const [email,setEmail]=useState('');const [password,setPassword]=useState('');const [busy,setBusy]=useState(false);async function submit(e:React.FormEvent){e.preventDefault();if(!email||!password){toast.error('ইমেইল ও পাসওয়ার্ড দিন');return}setBusy(true);await authClient.signIn.email({email,password,callbackURL:params.get('next')||'/',fetchOptions:{onSuccess:()=>{toast.success('সফলভাবে লগইন হয়েছে');router.push(params.get('next')||'/');router.refresh()},onError:(ctx)=>toast.error(ctx.error.message||'লগইন করা যায়নি')}});setBusy(false)}async function social(provider:'google'|'github'){await authClient.signIn.social({provider,callbackURL:params.get('next')||'/',fetchOptions:{onError:(ctx)=>toast.error(ctx.error.message||'সোশ্যাল লগইন চালু নেই')}})}return <main className="auth-page"><div className="auth-art"><div className="auth-art-mark">🛒</div><div className="section-kicker">স্মার্ট বাজারের প্রথম ধাপ</div><h2>দাম জানুন।<br/><span>সাশ্রয়ী থাকুন।</span></h2><p>আপনার বাজারের হিসাব থাকুক হাতের মুঠোয়।</p><div className="auth-produce">🍚 🥬 🧅 🥔 🐟</div></div><div className="auth-panel"><Link href="/" className="auth-back">← হোম পেজে ফিরে যান</Link><div className="auth-heading"><span className="auth-icon"><ShoppingBasket size={23}/></span><h1>আবার স্বাগতম!</h1><p>আপনার অ্যাকাউন্টে সাইন ইন করুন</p></div><form onSubmit={submit} className="auth-form"><label>ইমেইল ঠিকানা<input type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="name@example.com" required/></label><label>পাসওয়ার্ড<input type="password" value={password} onChange={e=>setPassword(e.target.value)} placeholder="আপনার পাসওয়ার্ড" required minLength={8}/></label><button className="btn btn-dark auth-submit" disabled={busy}>{busy?'লগইন হচ্ছে...':'সাইন ইন করুন'} <ArrowRight size={17}/></button></form><div className="auth-divider"><span>অথবা চালিয়ে যান</span></div><div className="social-row"><button onClick={()=>social('google')}><Chrome size={17}/> Google</button><button onClick={()=>social('github')}><Github size={17}/> GitHub</button></div><p className="auth-switch">অ্যাকাউন্ট নেই? <Link href="/signup">নতুন অ্যাকাউন্ট তৈরি করুন</Link></p><p className="auth-secure"><LockKeyhole size={13}/> আপনার তথ্য সুরক্ষিত রাখতে Better Auth ব্যবহার করা হয়েছে</p></div></main>}
+
+import Link from 'next/link';
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { authClient } from '@/lib/auth-client';
+import toast from 'react-hot-toast';
+import {
+  ArrowRight,
+  Chrome,
+  Github,
+  ShoppingBasket,
+} from 'lucide-react';
+
+export default function SignUpPage() {
+  const router = useRouter();
+
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [busy, setBusy] = useState(false);
+
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
+
+    if (name.trim().length < 2) {
+      toast.error('নাম কমপক্ষে ২ অক্ষরের হতে হবে');
+      return;
+    }
+
+    if (password.length < 8) {
+      toast.error('পাসওয়ার্ড কমপক্ষে ৮ অক্ষরের দিন');
+      return;
+    }
+
+    setBusy(true);
+
+    try {
+      await authClient.signUp.email({
+        name: name.trim(),
+        email,
+        password,
+        fetchOptions: {
+          onSuccess: () => {
+            toast.success('অ্যাকাউন্ট তৈরি হয়েছে, এখন সাইন ইন করুন');
+            router.push('/signin');
+          },
+          onError: (ctx) => {
+            toast.error(
+              ctx.error.message || 'অ্যাকাউন্ট তৈরি করা যায়নি'
+            );
+          },
+        },
+      });
+    } catch {
+      toast.error('অ্যাকাউন্ট তৈরি করা যায়নি');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function social(provider: 'google' | 'github') {
+    try {
+      await authClient.signIn.social({
+        provider,
+        callbackURL: '/',
+        fetchOptions: {
+          onError: (ctx) => {
+            toast.error(
+              ctx.error.message || 'সোশ্যাল লগইন চালু নেই'
+            );
+          },
+        },
+      });
+    } catch {
+      toast.error('সোশ্যাল লগইন চালু নেই');
+    }
+  }
+
+  return (
+    <main className="auth-page">
+      <div className="auth-art">
+        <div className="auth-art-mark">🛒</div>
+        <div className="section-kicker">বাজারের নতুন অভিজ্ঞতা</div>
+
+        <h2>
+          ভালো সিদ্ধান্ত,
+          <br />
+          <span>ভালো সাশ্রয়।</span>
+        </h2>
+
+        <p>আজ থেকেই বাজারের দামের সঙ্গে থাকুন আপডেটেড।</p>
+        <div className="auth-produce">🥕 🍅 🧄 🫘 🥚</div>
+      </div>
+
+      <div className="auth-panel">
+        <Link href="/" className="auth-back">
+          ← হোম পেজে ফিরে যান
+        </Link>
+
+        <div className="auth-heading">
+          <span className="auth-icon">
+            <ShoppingBasket size={23} />
+          </span>
+          <h1>অ্যাকাউন্ট তৈরি করুন</h1>
+          <p>বাজার দর-এর সঙ্গে আপনার যাত্রা শুরু হোক</p>
+        </div>
+
+        <form onSubmit={submit} className="auth-form">
+          <label>
+            আপনার নাম
+            <input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="সম্পূর্ণ নাম"
+              required
+              minLength={2}
+            />
+          </label>
+
+          <label>
+            ইমেইল ঠিকানা
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="name@example.com"
+              required
+            />
+          </label>
+
+          <label>
+            পাসওয়ার্ড
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="কমপক্ষে ৮ অক্ষর"
+              required
+              minLength={8}
+            />
+          </label>
+
+          <button
+            className="btn btn-dark auth-submit"
+            disabled={busy}
+          >
+            {busy ? 'অ্যাকাউন্ট তৈরি হচ্ছে...' : 'সাইন আপ করুন'}
+            <ArrowRight size={17} />
+          </button>
+        </form>
+
+        <div className="auth-divider">
+          <span>অথবা সাইন আপ করুন</span>
+        </div>
+
+        <div className="social-row">
+          <button type="button" onClick={() => social('google')}>
+            <Chrome size={17} />
+            Google
+          </button>
+
+          <button type="button" onClick={() => social('github')}>
+            <Github size={17} />
+            GitHub
+          </button>
+        </div>
+
+        <p className="auth-switch">
+          আগে থেকেই অ্যাকাউন্ট আছে?{' '}
+          <Link href="/signin">সাইন ইন করুন</Link>
+        </p>
+      </div>
+    </main>
+  );
+}
