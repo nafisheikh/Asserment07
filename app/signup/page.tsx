@@ -9,21 +9,28 @@ import { ArrowRight, Chrome, Github, ShoppingBasket } from 'lucide-react';
 
 export default function SignUpPage() {
   const router = useRouter();
+
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [busy, setBusy] = useState(false);
+  const [socialBusy, setSocialBusy] = useState(false);
 
-  async function submit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
 
     if (name.trim().length < 2) {
-      toast.error('Name must be at least 2 characters');
+      toast.error('নাম কমপক্ষে ২ অক্ষরের হতে হবে');
+      return;
+    }
+
+    if (!email.trim()) {
+      toast.error('ইমেইল ঠিকানা লিখুন');
       return;
     }
 
     if (password.length < 8) {
-      toast.error('Password must be at least 8 characters');
+      toast.error('পাসওয়ার্ড কমপক্ষে ৮ অক্ষরের হতে হবে');
       return;
     }
 
@@ -32,132 +39,159 @@ export default function SignUpPage() {
     try {
       await authClient.signUp.email({
         name: name.trim(),
-        email,
+        email: email.trim(),
         password,
         fetchOptions: {
           onSuccess: () => {
-            toast.success('Account created. Please sign in.');
+            toast.success('অ্যাকাউন্ট তৈরি হয়েছে। এবার লগইন করুন।');
             router.push('/signin');
           },
           onError: (ctx) => {
-            toast.error(ctx.error.message || 'Could not create account');
+            toast.error(
+              ctx.error.message || 'অ্যাকাউন্ট তৈরি করা যায়নি'
+            );
           },
         },
       });
     } catch {
-      toast.error('Could not create account');
+      toast.error('অ্যাকাউন্ট তৈরি করা যায়নি। আবার চেষ্টা করুন।');
     } finally {
       setBusy(false);
     }
   }
 
-  async function social(provider: 'google' | 'github') {
+  async function handleSocialLogin(
+    provider: 'google' | 'github'
+  ) {
+    setSocialBusy(true);
+
     try {
       await authClient.signIn.social({
         provider,
         callbackURL: '/',
         fetchOptions: {
           onError: (ctx) => {
-            toast.error(ctx.error.message || 'Social login is unavailable');
+            toast.error(
+              ctx.error.message || 'সোশ্যাল লগইন করা যায়নি'
+            );
+            setSocialBusy(false);
           },
         },
       });
     } catch {
-      toast.error('Social login is unavailable');
+      toast.error('সোশ্যাল লগইন করা যায়নি। আবার চেষ্টা করুন।');
+      setSocialBusy(false);
     }
   }
 
   return (
     <main className="auth-page">
-      <div className="auth-art">
+      <section className="auth-art">
         <div className="auth-art-mark">🛒</div>
-        <div className="section-kicker">A better shopping experience</div>
-        <h2>
-          Shop smart,
-          <br />
-          <span>save more.</span>
-        </h2>
-        <p>Stay updated with market prices from today.</p>
-        <div className="auth-produce">🥕 🍅 🧄 🫘 🥚</div>
-      </div>
+        <div className="section-kicker">আপনার বিশ্বস্ত বাজার</div>
 
-      <div className="auth-panel">
+        <h2>
+          বাজার করুন,
+          <br />
+          <span>সাশ্রয় করুন।</span>
+        </h2>
+
+        <p>প্রতিদিনের বাজারদর জানুন সহজেই।</p>
+        <div className="auth-produce">🥕 🍅 🧄 🫘 🥚</div>
+      </section>
+
+      <section className="auth-panel">
         <Link href="/" className="auth-back">
-          ← Back to home
+          ← হোম পেজে ফিরে যান
         </Link>
 
         <div className="auth-heading">
           <span className="auth-icon">
             <ShoppingBasket size={23} />
           </span>
-          <h1>Create an account</h1>
-          <p>Start your journey with BazarDor</p>
+
+          <h1>নতুন অ্যাকাউন্ট তৈরি করুন</h1>
+          <p>BazarDor-এর সঙ্গে আপনার যাত্রা শুরু করুন</p>
         </div>
 
-        <form onSubmit={submit} className="auth-form">
+        <form onSubmit={handleSubmit} className="auth-form">
           <label>
-            Your name
+            আপনার নাম
             <input
+              type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="Full name"
-              required
+              placeholder="সম্পূর্ণ নাম লিখুন"
+              autoComplete="name"
               minLength={2}
+              required
             />
           </label>
 
           <label>
-            Email address
+            ইমেইল ঠিকানা
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="name@example.com"
+              placeholder="আপনার ইমেইল লিখুন"
+              autoComplete="email"
               required
             />
           </label>
 
           <label>
-            Password
+            পাসওয়ার্ড
             <input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="At least 8 characters"
-              required
+              placeholder="কমপক্ষে ৮ অক্ষর"
+              autoComplete="new-password"
               minLength={8}
+              required
             />
           </label>
 
           <button
             type="submit"
             className="btn btn-dark auth-submit"
-            disabled={busy}
+            disabled={busy || socialBusy}
           >
-            {busy ? 'Creating account...' : 'Sign up'}
+            {busy ? 'অ্যাকাউন্ট তৈরি হচ্ছে...' : 'অ্যাকাউন্ট তৈরি করুন'}
             <ArrowRight size={17} />
           </button>
         </form>
 
         <div className="auth-divider">
-          <span>Or sign up with</span>
+          <span>অথবা নিবন্ধন করুন</span>
         </div>
 
         <div className="social-row">
-          <button type="button" onClick={() => social('google')}>
+          <button
+            type="button"
+            disabled={busy || socialBusy}
+            onClick={() => handleSocialLogin('google')}
+          >
             <Chrome size={17} />
             Google
           </button>
-          <button type="button" onClick={() => social('github')}>
+
+          <button
+            type="button"
+            disabled={busy || socialBusy}
+            onClick={() => handleSocialLogin('github')}
+          >
             <Github size={17} />
             GitHub
           </button>
         </div>
 
         <p className="auth-switch">
-          Already have an account? <Link href="/signin">Sign in</Link>
+          আগেই অ্যাকাউন্ট আছে?{' '}
+          <Link href="/signin">লগইন করুন</Link>
         </p>
-      </div>
+      </section>
     </main>
   );
 }
