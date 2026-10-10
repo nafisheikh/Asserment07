@@ -1,0 +1,4 @@
+import Link from 'next/link';
+import type { Product } from '@/types/bazardor';
+import { bn, changeValue, productEmoji, productName, productPrice, productSlug } from '@/lib/utils';
+export default function PriceTicker({ products }: { products: Product[] }) { const list = products.length ? [...products,...products] : []; return <div className="ticker"><div className="ticker-label"><span className="live-dot"/> লাইভ বাজার</div><div className="ticker-window"><div className="ticker-track">{list.map((p,i)=>{const change=changeValue(p);return <Link href={`/product/${productSlug(p)}`} className="ticker-item" key={`${productSlug(p)}-${i}`}><span>{productEmoji(p)} {productName(p)}</span><b>{bn(productPrice(p))} টাকা</b><em className={change>0?'up':change<0?'down':'flat'}>{change>0?'▲':change<0?'▼':'—'} {bn(Math.abs(change))}%</em></Link>})}</div></div></div> }

@@ -1,0 +1,2 @@
+import Link from 'next/link';import {ArrowLeft,House} from 'lucide-react';
+export default function NotFound(){return <main className="not-found wrap"><div className="not-found-art">🧺</div><div className="section-kicker">৪০৪ · পৃষ্ঠা পাওয়া যায়নি</div><h1>এই বাজারের ঠিকানা<br/>খুঁজে পাওয়া গেল না!</h1><p>লিংকটি ভুল হতে পারে অথবা পৃষ্ঠাটি সরানো হয়েছে।</p><Link href="/" className="btn btn-dark"><House size={17}/> হোম পেজে ফিরে যান <ArrowLeft size={16}/></Link></main>}
